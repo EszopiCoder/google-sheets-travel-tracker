@@ -1,18 +1,9 @@
 /**
- * Retrieve airport data from Github and paste to active sheet.
+ * Create new sheet and retrieve airport data from Github.
  * Warning: This will clear active sheet.
 */
 function getAirportData() {
-  // Double check user understands active sheet will have data overwritten
-  var ui = SpreadsheetApp.getUi();
-  var response = ui.alert(
-    'WARNING\nActive sheet will be cleared\nDo you want to proceed?',
-    ui.ButtonSet.YES_NO
-  );
-  if (response == ui.Button.NO) {
-    return
-  }
-
+  SpreadsheetApp.getActiveSpreadsheet().toast('Adding airports to new sheet','getAirportData()',3);
   // Create array and headers for airport data
   let airportData = [];
   airportData.push(["IATA","ICAO","Name","City","State","Country","Elevation","Latitude","Longitude","Timezone"]);
@@ -25,6 +16,12 @@ function getAirportData() {
       airportData.push([githubDataText[key].iata,githubDataText[key].icao,githubDataText[key].name,githubDataText[key].city,githubDataText[key].state,githubDataText[key].country,githubDataText[key].elevation,githubDataText[key].lat,githubDataText[key].lon,githubDataText[key].tz]);
     }
   }
+
+  // Create sheet and paste data to sheet
+  SpreadsheetApp.getActiveSpreadsheet().insertSheet("Airports");
+  SpreadsheetApp.getActiveSheet().getRange(1,1,airportData.length,airportData[0].length).setValues(airportData);
+  SpreadsheetApp.getActiveSpreadsheet().toast('Completed','getAirportData()',3);
+}
 
   // Paste to sheet
   SpreadsheetApp.getActiveSheet().getRange(1,1,airportData.length,airportData[0].length).setValues(airportData);
