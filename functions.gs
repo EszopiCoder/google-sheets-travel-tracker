@@ -1,4 +1,36 @@
 /**
+ * Retrieve airport data from Github and paste to active sheet.
+ * Warning: This will clear active sheet.
+*/
+function getAirportData() {
+  // Double check user understands active sheet will have data overwritten
+  var ui = SpreadsheetApp.getUi();
+  var response = ui.alert(
+    'WARNING\nActive sheet will be cleared\nDo you want to proceed?',
+    ui.ButtonSet.YES_NO
+  );
+  if (response == ui.Button.NO) {
+    return
+  }
+
+  // Create array and headers for airport data
+  let airportData = [];
+  airportData.push(["IATA","ICAO","Name","City","State","Country","Elevation","Latitude","Longitude","Timezone"]);
+
+  // Retrieve airport data from Github and add to array
+  const githubData = UrlFetchApp.fetch("https://raw.githubusercontent.com/EszopiCoder/google-sheets-travel-tracker/refs/heads/main/airports.json");
+  const githubDataText = JSON.parse(githubData.getContentText());
+  for (var key of Object.keys(githubDataText)) {
+    if (githubDataText[key].iata) {
+      airportData.push([githubDataText[key].iata,githubDataText[key].icao,githubDataText[key].name,githubDataText[key].city,githubDataText[key].state,githubDataText[key].country,githubDataText[key].elevation,githubDataText[key].lat,githubDataText[key].lon,githubDataText[key].tz]);
+    }
+  }
+
+  // Paste to sheet
+  SpreadsheetApp.getActiveSheet().getRange(1,1,airportData.length,airportData[0].length).setValues(airportData);
+}
+
+/**
  * Calculates great circle distance in km.
  * @param {number} lat1 Latitude of location 1.
  * @param {number} lon1 Longitude of location 1.
