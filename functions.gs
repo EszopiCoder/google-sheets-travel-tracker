@@ -49,3 +49,44 @@ function gcmDist(lat1,lon1,lat2,lon2) {
   dist *= 6371.2;
   return dist;
 }
+
+/**
+ * Call drawMap and save map as png. 
+*/
+function saveMap() {
+  drawMap(false);
+}
+
+/**
+ * Draw static map using Google API
+ * @param {boolean} insertMap [OPTIONAL] If true, map will be inserted as image on sheet. If false, map will be saved to Drive as png. 
+*/
+function drawMap(insertMap=true) {
+  // Get sheet, last row, and values
+  const ss = SpreadsheetApp.getActive().getSheetByName('Map');
+  const aVals = ss.getRange("A1:A").getValues();
+  const aLast = aVals.filter(String).length;
+  const flights = ss.getRange(2,4,aLast-1,4).getValues();
+
+  // Create map
+  SpreadsheetApp.getActiveSpreadsheet().toast('Creating map','Maps',3);
+  const map = Maps.newStaticMap()
+    .setCenter('United States of America')
+    .setPathStyle(1,Maps.StaticMap.Color.BLACK,Maps.StaticMap.Color.WHITE)
+    .setMarkerStyle(Maps.StaticMap.MarkerSize.TINY,Maps.StaticMap.Color.RED,'0');
+  for (let i = 0; i < flights.length; i++) {
+    map.addPath([flights[i][0],flights[i][1],flights[i][2],flights[i][3]]);
+    map.addMarker(flights[i][0],flights[i][1]);
+    map.addMarker(flights[i][2],flights[i][3]);
+  }
+
+  if (insertMap) {
+    // Insert map into Google Sheets as image
+    ss.insertImage(map.getBlob(),1,1);
+    SpreadsheetApp.getActiveSpreadsheet().toast('Inserted into active sheet','Maps',3);
+  } else {
+    // Save as png
+    DriveApp.createFile(Utilities.newBlob(map.getMapImage(), 'image/png', 'map.png'),);
+    SpreadsheetApp.getActiveSpreadsheet().toast('Saved to Google Drive','Maps',3);
+  }
+}
